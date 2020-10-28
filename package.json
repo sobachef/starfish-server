@@ -1,0 +1,23 @@
+{
+  "name": "starfish-server",
+  "version": "0.1.0",
+  "description": "Starfish Server",
+  "main": "index.js",
+  "homepage": "https://starfish.computer",
+  "author": "sobachef@protonmail.com",
+  "license": "MIT",
+  "bin": {
+    "starfish": "./bin/starfish.js"
+  },
+  "scripts": {
+    "start": "node bin/starfish"
+  },
+  "dependencies": {
+    "bitcore-lib": "^8.22.2",
+    "connect-timeout": "^1.9.0",
+    "cors": "^2.8.5",
+    "ejs": "^3.1.5",
+    "express": "^4.17.1",
+    "nedb": "^1.8.0"
+  }
+}

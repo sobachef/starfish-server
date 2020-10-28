@@ -1,0 +1,86 @@
+html, body {
+  margin: 0;
+  box-sizing: border-box;
+  font-family: Sans-serif;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+.container {
+  box-sizing: border-box;
+  text-align: center;
+  font-size: 12px;
+  overflow: auto;
+}
+.menu-item {
+  padding: 10px;
+  cursor: pointer;
+}
+a#import {
+  color: rgba(0,0,0,0.6);
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 10px 0 0;
+  display: inline-block;
+}
+nav {
+  padding: 30px 10px;
+  display: flex;
+  font-size: 14px;
+  align-items: center;
+}
+nav img.icon {
+  height: 25px;
+}
+nav h1 {
+  text-align: left;
+  letter-spacing: -1px;
+  font-size: 20px;
+  margin: 0;
+}
+.flexible {
+  flex-grow: 1;
+}
+#new:hover {
+  background: rgba(0,0,0,0.4);
+}
+#new {
+  padding: 5px;
+  border-radius: 2px;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+.net img {
+  vertical-align: middle;
+  height: 20px;
+}
+.item > * {
+  margin: 5px 0;
+}
+.item {
+  text-align: left;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  padding: 10px;
+  border-top: 1px solid rgba(0,0,0,0.05);
+  font-size: 14px;
+}
+.item:last-child {
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+.item .address {
+  font-family: menlo;
+  font-size: 12px;
+}
+.item h2 {
+  font-size: 18px;
+  letter-spacing: -1px;
+}
+#logout {
+  cursor: pointer;
+}
