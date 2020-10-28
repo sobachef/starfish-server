@@ -2,8 +2,10 @@
 
 - **starfish** is a decentralized identity management and authentication system powered by Bitcoin. 
 - **starfish-server** is an implementation of the Starfish identity scheme, which takes the form of a node.js web server.
+- **[starfish-desktop](https://github.com/sobachef/starfish-desktop)**, a cross platform desktop app implementation (Mac, Windows, Linux) is powered by **starfish-server**. The desktop app wraps the starfish-server in an app format.
 
 > To learn more about the Starfish identity scheme, check out the official documentation at: https://starfish.computer
+
 
 # How starfish-server works
 
