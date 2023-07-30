@@ -1,6 +1,6 @@
-'use strict';
+"use strict";
 
-var bitcore = require('bitcore-lib');
+import bitcore from "bitcore-lib";
 var _ = bitcore.deps._;
 var PrivateKey = bitcore.PrivateKey;
 var PublicKey = bitcore.PublicKey;
@@ -16,32 +16,60 @@ var $ = bitcore.util.preconditions;
  * constructs a new message to sign and verify.
  *
  * @param {String} message
+ * @param {String=} encoding - The message encoding (either 'utf8', 'base64', or 'hex')
  * @returns {Message}
  */
-var Message = function Message(message) {
+var Message = function Message(message, encoding = "utf8") {
   if (!(this instanceof Message)) {
-    return new Message(message);
+    return new Message(message, encoding);
   }
-  $.checkArgument(_.isString(message), 'First argument should be a string');
+  $.checkArgument(
+    _.isString(message),
+    "First argument should be a string. You can specify the encoding as the second parameter"
+  );
+  const validEncodings = [
+    "ascii",
+    "utf8",
+    "utf16le",
+    "ucs2",
+    "base64",
+    "latin1",
+    "binary",
+    "hex",
+  ];
+
+  $.checkArgument(
+    validEncodings.includes(encoding),
+    "Second argument should be a valid BufferEncoding: 'utf8', 'hex', or 'base64', etc"
+  );
+
   this.message = message;
+  this.encoding = encoding;
 
   return this;
 };
 
-Message.MAGIC_BYTES = new Buffer('Bitcoin Signed Message:\n');
+Message.MAGIC_BYTES = Buffer.from("Bitcoin Signed Message:\n");
 
 Message.prototype.magicHash = function magicHash() {
   var prefix1 = BufferWriter.varintBufNum(Message.MAGIC_BYTES.length);
-  var messageBuffer = new Buffer(this.message);
+  var messageBuffer = Buffer.from(this.message, this.encoding);
   var prefix2 = BufferWriter.varintBufNum(messageBuffer.length);
-  var buf = Buffer.concat([prefix1, Message.MAGIC_BYTES, prefix2, messageBuffer]);
+  var buf = Buffer.concat([
+    prefix1,
+    Message.MAGIC_BYTES,
+    prefix2,
+    messageBuffer,
+  ]);
   var hash = sha256sha256(buf);
   return hash;
 };
 
 Message.prototype._sign = function _sign(privateKey) {
-  $.checkArgument(privateKey instanceof PrivateKey,
-    'First argument should be an instance of PrivateKey');
+  $.checkArgument(
+    privateKey instanceof PrivateKey,
+    "First argument should be an instance of PrivateKey"
+  );
   var hash = this.magicHash();
   var ecdsa = new ECDSA();
   ecdsa.hashbuf = hash;
@@ -59,19 +87,25 @@ Message.prototype._sign = function _sign(privateKey) {
  * @returns {String} A base64 encoded compact signature
  */
 Message.prototype.sign = function sign(privateKey) {
-  let wif = privateKey.toWIF()
-  privateKey = PrivateKey.fromWIF(wif)
+  let wif = privateKey.toWIF();
+  privateKey = PrivateKey.fromWIF(wif);
   var signature = this._sign(privateKey);
-  return signature.toCompact().toString('base64');
+  return signature.toCompact().toString("base64");
 };
 
 Message.prototype._verify = function _verify(publicKey, signature) {
-  $.checkArgument(publicKey instanceof PublicKey, 'First argument should be an instance of PublicKey');
-  $.checkArgument(signature instanceof Signature, 'Second argument should be an instance of Signature');
+  $.checkArgument(
+    publicKey instanceof PublicKey,
+    "First argument should be an instance of PublicKey"
+  );
+  $.checkArgument(
+    signature instanceof Signature,
+    "Second argument should be an instance of Signature"
+  );
   var hash = this.magicHash();
   var verified = ECDSA.verify(hash, signature, publicKey);
   if (!verified) {
-    this.error = 'The signature was invalid';
+    this.error = "The signature was invalid";
   }
   return verified;
 };
@@ -91,7 +125,7 @@ Message.prototype.verify = function verify(bitcoinAddress, signatureString) {
   if (_.isString(bitcoinAddress)) {
     bitcoinAddress = Address.fromString(bitcoinAddress);
   }
-  var signature = Signature.fromCompact(new Buffer(signatureString, 'base64'));
+  var signature = Signature.fromCompact(Buffer.from(signatureString, "base64"));
 
   // recover the public key
   var ecdsa = new ECDSA();
@@ -99,11 +133,14 @@ Message.prototype.verify = function verify(bitcoinAddress, signatureString) {
   ecdsa.sig = signature;
   var publicKey = ecdsa.toPublicKey();
 
-  var signatureAddress = Address.fromPublicKey(publicKey, bitcoinAddress.network);
+  var signatureAddress = Address.fromPublicKey(
+    publicKey,
+    bitcoinAddress.network
+  );
 
   // check that the recovered address and specified address match
   if (bitcoinAddress.toString() !== signatureAddress.toString()) {
-    this.error = 'The signature did not match the message digest';
+    this.error = "The signature did not match the message digest";
     return false;
   }
 
@@ -116,7 +153,7 @@ Message.prototype.verify = function verify(bitcoinAddress, signatureString) {
  * @param {String} str - A string of the message
  * @returns {Message} A new instance of a Message
  */
-Message.fromString = function(str) {
+Message.fromString = function (str) {
   return new Message(str);
 };
 
@@ -138,7 +175,8 @@ Message.fromJSON = function fromJSON(json) {
  */
 Message.prototype.toObject = function toObject() {
   return {
-    message: this.message
+    message: this.message,
+    encoding: this.encoding,
   };
 };
 
@@ -154,7 +192,7 @@ Message.prototype.toJSON = function toJSON() {
  *
  * @returns {String} Message
  */
-Message.prototype.toString = function() {
+Message.prototype.toString = function () {
   return this.message;
 };
 
@@ -163,8 +201,8 @@ Message.prototype.toString = function() {
  *
  * @returns {String} Message
  */
-Message.prototype.inspect = function() {
-  return '<Message: ' + this.toString() + '>';
+Message.prototype.inspect = function () {
+  return "<Message: " + this.toString() + ">";
 };
 
-module.exports = Message;
+export default Message;

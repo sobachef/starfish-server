@@ -1,23 +1,33 @@
 {
-  "name": "starfish-server",
+  "name": "tokenpass-server",
   "version": "0.1.0",
-  "description": "Starfish Server",
+  "description": "TokenPass Server",
   "main": "index.js",
-  "homepage": "https://starfish.computer",
-  "author": "sobachef@protonmail.com",
+  "homepage": "https://tokenpass.app",
+  "type": "module",
+  "author": {
+    "name": "Luke Rohenaz"
+  },
   "license": "MIT",
   "bin": {
-    "starfish": "./bin/starfish.js"
+    "tokenpass": "./bin/tokenpass.js"
   },
   "scripts": {
-    "start": "node bin/starfish"
+    "start": "node bin/tokenpass",
+    "test": "jest"
   },
   "dependencies": {
     "bitcore-lib": "^8.22.2",
+    "body-parser": "^1.20.2",
     "connect-timeout": "^1.9.0",
     "cors": "^2.8.5",
     "ejs": "^3.1.5",
     "express": "^4.17.1",
+    "libp2p": "0.42.0",
+    "minidenticons": "^4.2.0",
     "nedb": "^1.8.0"
+  },
+  "devDependencies": {
+    "jest": "^29.6.1"
   }
 }

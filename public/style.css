@@ -1,4 +1,5 @@
-html, body {
+html,
+body {
   margin: 0;
   box-sizing: border-box;
   font-family: Sans-serif;
@@ -8,7 +9,6 @@ body {
   flex-direction: column;
   height: 100%;
   max-width: 800px;
-  margin: 0 auto;
 }
 .container {
   box-sizing: border-box;
@@ -21,7 +21,7 @@ body {
   cursor: pointer;
 }
 a#import {
-  color: rgba(0,0,0,0.6);
+  color: rgba(0, 0, 0, 0.6);
   text-decoration: underline;
   cursor: pointer;
   padding: 10px 0 0;
@@ -32,6 +32,7 @@ nav {
   display: flex;
   font-size: 14px;
   align-items: center;
+  margin: 0 auto;
 }
 nav img.icon {
   height: 25px;
@@ -46,7 +47,7 @@ nav h1 {
   flex-grow: 1;
 }
 #new:hover {
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.4);
 }
 #new {
   padding: 5px;
@@ -67,11 +68,11 @@ nav h1 {
   word-wrap: break-word;
   word-break: break-word;
   padding: 10px;
-  border-top: 1px solid rgba(0,0,0,0.05);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
   font-size: 14px;
 }
 .item:last-child {
-  border-bottom: 1px solid rgba(0,0,0,0.05);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 .item .address {
   font-family: menlo;
@@ -81,6 +82,28 @@ nav h1 {
   font-size: 18px;
   letter-spacing: -1px;
 }
+.state-items {
+  display: flex;
+  align-items: center;
+}
 #logout {
   cursor: pointer;
+}
+
+label {
+  width: 100%;
+  padding: 0.25rem 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0.25rem 0;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  transition: all 0.3s ease;
+  font-size: large;
+}
+
+label:hover {
+  background: #f2f2f2;
 }
