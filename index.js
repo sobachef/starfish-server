@@ -447,12 +447,12 @@ const init = (config) => {
   // alias to vivi.railway.internal
   // Create an auth token for some amount of time
   app.post("/auth", cors(), async (req, res) => {
+    console.log("ATH ATTEMPTED FROM", req.headers.origin);
+    const pw = req.body.password;
     try {
-      let s = await seed.get(req.body.password);
+      let s = await seed.get(pw);
       if (s) {
         K.setSeed(s);
-
-        console.log("ATH ATTEMPTED FROM", req.headers.origin);
 
         // ! Forbid auth from any not allowed origin
         if (!allowedOrigins.includes(req.headers.origin)) {
