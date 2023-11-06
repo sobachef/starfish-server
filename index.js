@@ -458,7 +458,11 @@ const init = (config) => {
         K.setSeed(s);
 
         // ! Forbid auth from any not allowed origin
-        if (!allowedOrigins.includes(req.headers.origin)) {
+        // undefined is same network
+        if (
+          req.headers.origin &&
+          !allowedOrigins.includes(req.headers.origin)
+        ) {
           res.status(403).json({
             error: "The origin is not authorized",
             code: 6,
