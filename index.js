@@ -23,6 +23,17 @@ const __dirname = dirname(__filename);
 const app = express();
 const TIMEOUT = 20;
 const defaultPort = 21000;
+const defaultExpireTime = "1h";
+
+const allowedOrigins = [
+  `http://${process.env.TOKENPASS_HOST || "localhost"}:${
+    process.env.TOKENPASS_PORT || "21000"
+  }`,
+];
+const whitelist = process.env.TOKENPASS_ORIGIN_WHITELIST;
+if (whitelist) {
+  allowedOrigins.push(...whitelist.split(","));
+}
 
 const hostFromOrigin = (headers) => {
   return headers.origin ? new URL(headers.origin).host : null; // "localhost";
@@ -432,16 +443,6 @@ const init = (config) => {
       }
     } catch (e) {}
   });
-
-  const allowedOrigins = [
-    `http://${process.env.TOKENPASS_HOST || "localhost"}:${
-      process.env.TOKENPASS_PORT || "21000"
-    }`,
-  ];
-  const whitelist = process.env.TOKENPASS_ORIGIN_WHITELIST;
-  if (whitelist) {
-    allowedOrigins.push(...whitelist.split(","));
-  }
 
   // alias to vivi.railway.internal
   // Create an auth token for some amount of time
