@@ -23,7 +23,7 @@ const __dirname = dirname(__filename);
 const app = express();
 const TIMEOUT = 20;
 const defaultPort = 21000;
-const defaultExpireTime = "1h";
+const defaultExpireTime = "once";
 
 const allowedOrigins = [
   `http://${process.env.TOKENPASS_HOST || "localhost"}:${
