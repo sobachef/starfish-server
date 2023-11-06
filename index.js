@@ -22,6 +22,7 @@ const __dirname = dirname(__filename);
 
 const app = express();
 const TIMEOUT = 20;
+const defaultPort = 21000;
 
 const hostFromOrigin = (headers) => {
   return headers.origin ? new URL(headers.origin).host : null; // "localhost";
@@ -579,7 +580,7 @@ const init = (config) => {
     }
   });
 
-  app.listen(port, () => {
+  app.listen(process.env.TOKENPASS_PORT || defaultPort, () => {
     console.log(
       `TokenPass listening at http://${
         process.env.TOKENPASS_HOST || "localhost"
