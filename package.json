@@ -15,7 +15,8 @@
     "tokenpass": "./bin/tokenpass.js"
   },
   "scripts": {
-    "build": "rimraf -rf dist && microbundle && cpy views/**/* dist/views --parents && cpy public/**/* dist/public --parents",
+    "buildd": "rimraf -rf dist && microbundle && cpy views/**/* dist/views --parents && cpy public/**/* dist/public --parents",
+    "dev": "yarn buildd && yarn start",
     "start": "node bin/tokenpass",
     "test": "jest"
   },
