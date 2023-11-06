@@ -16,7 +16,7 @@
   },
   "scripts": {
     "build": "rimraf -rf dist && microbundle && cpy views/**/* dist/views --parents && cpy public/**/* dist/public --parents",
-    "start": "yarn build && node bin/tokenpass",
+    "start": "node bin/tokenpass",
     "test": "jest"
   },
   "dependencies": {
