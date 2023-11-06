@@ -21,7 +21,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
-const port = 21000;
 const TIMEOUT = 20;
 
 const hostFromOrigin = (headers) => {
@@ -78,7 +77,9 @@ const init = (config) => {
           error: "Please provide an access token in the Authorization header.",
           code: 2,
           success: false,
-          errorURL: "http://localhost:21000/auth",
+          errorURL: `http://${process.env.TOKENPASS_HOST || "localhost"}:${
+            process.env.TOKENPASS_PORT || "21000"
+          }/auth`,
         });
         return;
       }
@@ -89,7 +90,9 @@ const init = (config) => {
       if (!state?.accessToken || state.accessToken !== accessToken) {
         res.status(401).json({
           error: "Invalid access token.",
-          errorURL: "http://localhost:21000/auth",
+          errorURL: `http://${process.env.TOKENPASS_HOST || "localhost"}:${
+            process.env.TOKENPASS_PORT || "21000"
+          }/auth`,
           code: 3,
           success: false,
         });
@@ -100,7 +103,7 @@ const init = (config) => {
       // use host associated with the access token if provided
       if (!host) {
         // no host means its youself on localhost
-        host = "localhost";
+        host = process.env.TOKENPASS_HOST || "localhost";
         console.log("no origin, using", host);
       }
 
@@ -116,7 +119,9 @@ const init = (config) => {
       if (expired) {
         res.status(401).json({
           error: "Access token has expired.",
-          errorURL: "http://localhost:21000/auth",
+          errorURL: `http://${process.env.TOKENPASS_HOST || "localhost"}:${
+            process.env.TOKENPASS_PORT || "21000"
+          }/auth`,
           code: 5,
         });
         return;
@@ -150,7 +155,9 @@ const init = (config) => {
       }
     } else {
       res.status(401).json({
-        errorURL: "http://localhost:21000/auth",
+        errorURL: `http://${process.env.TOKENPASS_HOST || "localhost"}:${
+          process.env.TOKENPASS_PORT || "21000"
+        }/auth`,
         error: "Check that TokenPass is running and you're signed in.",
         code: 1,
       });
@@ -168,7 +175,9 @@ const init = (config) => {
           error: "Please provide an access token in the Authorization header.",
           code: 2,
           success: false,
-          errorURL: "http://localhost:21000/auth",
+          errorURL: `http://${process.env.TOKENPASS_HOST || "localhost"}:${
+            process.env.TOKENPASS_PORT || "21000"
+          }/auth`,
         });
         return;
       }
@@ -180,7 +189,9 @@ const init = (config) => {
       if (!state) {
         res.status(401).json({
           error: "Invalid access token.",
-          errorURL: "http://localhost:21000/auth",
+          errorURL: `http://${process.env.TOKENPASS_HOST || "localhost"}:${
+            process.env.TOKENPASS_PORT || "21000"
+          }/auth`,
           code: 3,
           success: false,
         });
@@ -198,7 +209,9 @@ const init = (config) => {
       res.status(200).json({ data, address, sig, ts });
     } else {
       res.status(401).json({
-        errorURL: "http://localhost:21000/auth",
+        errorURL: `http://${process.env.TOKENPASS_HOST || "localhost"}:${
+          process.env.TOKENPASS_PORT || "21000"
+        }/auth`,
         error: "Check that TokenPass is running and you're signed in.",
         code: 1,
       });
@@ -212,7 +225,7 @@ const init = (config) => {
 
     // create first state for localhost with an icon
     const state = await S.findOrCreate({
-      host: "localhost",
+      host: process.env.TOKENPASS_HOST || "localhost",
     });
     if (!state.icon) {
       state.icon = "/auth/icon";
@@ -243,7 +256,9 @@ const init = (config) => {
         res.status(401).json({
           error: "invalid",
           success: false,
-          errorURL: "http://localhost:21000/auth",
+          errorURL: `http://${process.env.TOKENPASS_HOST || "localhost"}:${
+            process.env.TOKENPASS_PORT || "21000"
+          }/auth`,
         });
       }
     } catch (e) {}
@@ -294,7 +309,9 @@ const init = (config) => {
         error:
           "please check that TokenPass is running and you're signed in. check TokenPass dashboard at http://localhost:21000",
         code: 1,
-        errorURL: "http://localhost:21000",
+        errorURL: `http://${process.env.TOKENPASS_HOST || "localhost"}:${
+          process.env.TOKENPASS_PORT || "21000"
+        }`,
       });
     }
   });
@@ -351,7 +368,9 @@ const init = (config) => {
   app.post("/fund", cors(), async (req, res) => {
     const key = K.getSeed();
     if (key) {
-      const url = `http://localhost:21001/fund`;
+      const url = `http://${process.env.TOKENPASS_HOST || "localhost"}:${
+        process.env.TOKENPASS_PORT || "21000"
+      }/fund`;
       let referer = req.headers.origin;
       let host = referer ? new URL(referer).host : "localhost";
 
@@ -393,7 +412,9 @@ const init = (config) => {
         error:
           "please check that TokenPass is running and you're signed in. check TokenPass dashboard at http://localhost:21000",
         code: 1,
-        errorURL: "http://localhost:21000/auth",
+        errorURL: `http://${process.env.TOKENPASS_HOST || "localhost"}:${
+          process.env.TOKENPASS_PORT || "21000"
+        }/auth`,
       });
     }
   });
@@ -419,7 +440,12 @@ const init = (config) => {
         K.setSeed(s);
 
         // ! Forbid auth from any outside origin
-        if (req.headers.origin !== "http://localhost:21000") {
+        if (
+          req.headers.origin !==
+          `http://${process.env.TOKENPASS_HOST || "localhost"}:${
+            process.env.TOKENPASS_PORT || "21000"
+          }`
+        ) {
           res.status(403).json({
             error: "The origin is not authorized",
             code: 6,
@@ -476,7 +502,8 @@ const init = (config) => {
   // OAuth style login page for apps
   app.get("/auth", async (req, res) => {
     const returnHost = new URL(req.query.returnURL).host;
-    const host = hostFromOrigin(req.headers) || "localhost";
+    const host =
+      hostFromOrigin(req.headers) || process.env.TOKENPASS_HOST || "localhost";
 
     if (host !== returnHost) {
       res.status(403).json({
@@ -505,7 +532,12 @@ const init = (config) => {
   // Icon intended to be rendered in the auth page only
   app.get("/auth/icon", cors(), async (req, res) => {
     // ! Forbid auth from any outside host
-    if (req.headers.host !== "localhost:21000") {
+    if (
+      req.headers.host !==
+      `${process.env.TOKENPASS_HOST || "localhost"}:${
+        process.env.TOKENPASS_PORT || "21000"
+      }`
+    ) {
       res.status(403).json({
         error: "The origin is not authorized" + req.headers.origin,
         code: 6,
@@ -548,7 +580,11 @@ const init = (config) => {
   });
 
   app.listen(port, () => {
-    console.log(`TokenPass listening at http://localhost:${port}`);
+    console.log(
+      `TokenPass listening at http://${
+        process.env.TOKENPASS_HOST || "localhost"
+      }:${process.env.TOKENPASS_PORT || "21000"}`
+    );
   });
 };
 export { init };
