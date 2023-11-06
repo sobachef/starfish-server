@@ -4,7 +4,6 @@ import cors from "cors";
 import { randomUUID } from "crypto";
 import express from "express";
 import fs from "fs";
-import { minidenticon } from "minidenticons";
 import Datastore from "nedb";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -12,6 +11,11 @@ import Key from "./key.js";
 import Seed from "./seed.js";
 import State from "./state.js";
 import * as Wallet from "./wallet/index.js";
+
+const minidenticon = async (str) => {
+  const module = await import("minidenticons");
+  return module.minidenticon(str);
+};
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -529,8 +533,8 @@ const init = (config) => {
   app.get("/", async (req, res) => {
     if (K.getSeed()) {
       // if host is specified
-      let keys = await K.all();
-      let states = await S.all();
+      let keys = (await K.all()) || [];
+      let states = (await S.all()) || [];
       res.render("home", { keys, states, seed: true });
     } else {
       let seedCount = await seed.count();

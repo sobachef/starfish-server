@@ -12,7 +12,6 @@
 - **tokenpass-server** is an implementation of the Starfish identity scheme, which takes the form of a node.js web server.
 - **[tokenpass-desktop](https://github.com/rohenaz/tokenpass-desktop)**, a cross platform desktop app implementation (Mac, Windows, Linux) is powered by **tokenpass-server**. The desktop app wraps the tokenpass-server in an app format.
 
-
 # How tokenpass-server works
 
 ![workflow](workflow.png)
@@ -43,7 +42,7 @@ npm install --save tokenpass-server
 And then start the server:
 
 ```
-const tokenpass = require('tokenpass-server')
+import * as tokenpass from 'tokenpass-server'
 tokenpass({
   db: <The Key Path for TokenPass>
 })
@@ -84,7 +83,7 @@ npm install -g tokenpass-server
 to install globally, and then run
 
 ```
-tokenpass 
+tokenpass
 ```
 
 # Updates since starfish-server

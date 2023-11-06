@@ -1,8 +1,10 @@
 {
   "name": "tokenpass-server",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "TokenPass Server",
-  "main": "index.js",
+  "source": "index.js",
+  "main": "dist/index.cjs",
+  "module": "dist/index.esm.js",
   "homepage": "https://tokenpass.app",
   "type": "module",
   "author": {
@@ -13,7 +15,8 @@
     "tokenpass": "./bin/tokenpass.js"
   },
   "scripts": {
-    "start": "node bin/tokenpass",
+    "build": "rimraf -rf dist && microbundle && cpy views/**/* dist/views --parents && cpy public/**/* dist/public --parents",
+    "start": "yarn build && node bin/tokenpass",
     "test": "jest"
   },
   "dependencies": {
@@ -21,6 +24,7 @@
     "body-parser": "^1.20.2",
     "connect-timeout": "^1.9.0",
     "cors": "^2.8.5",
+    "cpy-cli": "^5.0.0",
     "ejs": "^3.1.5",
     "express": "^4.17.1",
     "libp2p": "0.42.0",
@@ -28,6 +32,8 @@
     "nedb": "^1.8.0"
   },
   "devDependencies": {
-    "jest": "^29.6.1"
+    "jest": "^29.6.1",
+    "microbundle": "^0.15.1",
+    "rimraf": "^5.0.5"
   }
 }
