@@ -77,7 +77,10 @@ const init = (config) => {
   // Sign a message
   app.post("/sign", cors(), async (req, res) => {
     // when a tokenpass wallet connects the referrer is empty
-
+    consolg.log("SIGN ATTEMPTED FROM", req.headers.origin, {
+      message: req.body.message,
+      authToken: req.headers.authorization,
+    });
     let message = req.body.message;
     let encoding = req.body.encoding || "utf8";
 
