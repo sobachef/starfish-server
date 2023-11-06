@@ -433,6 +433,17 @@ const init = (config) => {
     } catch (e) {}
   });
 
+  const allowedOrigins = [
+    `http://${process.env.TOKENPASS_HOST || "localhost"}:${
+      process.env.TOKENPASS_PORT || "21000"
+    }`,
+  ];
+  const whitelist = process.env.TOKENPASS_ORIGIN_WHITELIST;
+  if (whitelist) {
+    allowedOrigins.push(...whitelist.split(","));
+  }
+
+  // alias to vivi.railway.internal
   // Create an auth token for some amount of time
   app.post("/auth", cors(), async (req, res) => {
     try {
@@ -440,13 +451,10 @@ const init = (config) => {
       if (s) {
         K.setSeed(s);
 
-        // ! Forbid auth from any outside origin
-        if (
-          req.headers.origin !==
-          `http://${process.env.TOKENPASS_HOST || "localhost"}:${
-            process.env.TOKENPASS_PORT || "21000"
-          }`
-        ) {
+        console.log("ATH ATTEMPTED FROM", req.headers.origin);
+
+        // ! Forbid auth from any not allowed origin
+        if (!allowedOrigins.includes(req.headers.origin)) {
           res.status(403).json({
             error: "The origin is not authorized",
             code: 6,
