@@ -450,7 +450,7 @@ const init = (config) => {
   // alias to vivi.railway.internal
   // Create an auth token for some amount of time
   app.post("/auth", cors(), async (req, res) => {
-    console.log("ATH ATTEMPTED FROM", req.headers.origin);
+    console.log("AUTH ATTEMPTED FROM", req.headers.origin, { host });
     const pw = req.body.password;
     try {
       let s = await seed.get(pw);
@@ -519,10 +519,12 @@ const init = (config) => {
   // OAuth style login page for apps
   app.get("/auth", async (req, res) => {
     const returnHost = new URL(req.query.returnURL).host;
-    const host =
-      hostFromOrigin(req.headers) || process.env.TOKENPASS_HOST || "localhost";
 
-    if (host !== returnHost) {
+    // if host is undefined its localhost
+    const originHost = hostFromOrigin(req.headers);
+    const host = originHost || process.env.TOKENPASS_HOST || "localhost";
+
+    if (originHost && host !== returnHost) {
       res.status(403).json({
         error: "The origin is not authorized " + host + " " + returnHost,
         code: 6,
