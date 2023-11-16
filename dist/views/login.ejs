@@ -1,0 +1,59 @@
+<html>
+  <head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/style.css" />
+    <link href="/swal.css" rel="stylesheet" />
+    <script src="/swal.min.js"></script>
+    <script>
+      const modal = async () => {
+        let { value: formValues } = await Swal.fire({
+          title: "Login",
+          html: "<input type='password' placeholder='enter password' id='password'>",
+          preConfirm: () => {
+            return [document.querySelector("#password").value];
+          },
+          focusConfirm: true,
+          didOpen: () => {
+            document.querySelector("#password").focus();
+          },
+        });
+        if (formValues && formValues[0]) {
+          fetch("/login", {
+            method: "post",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              password: formValues[0],
+            }),
+          })
+            .then((res) => {
+              return res.json();
+            })
+            .then((data) => {
+              if (data.error) {
+                alert("incorrect password");
+                modal();
+              } else if (data.success) {
+                if (window.opener) {
+                  // If this window has an opener, it's a popup
+                  window.close(); // Close the window
+                } else {
+                  location.href = location.href;
+                }
+              }
+            });
+        } else {
+          modal();
+        }
+      };
+      document.addEventListener("DOMContentLoaded", (e) => {
+        modal();
+      });
+    </script>
+  </head>
+  <body>
+    <nav>
+      <img class="mr-2 w-7" src="http://localhost:21000/auth/icon" />
+      <h1>tokenpass</h1>
+    </nav>
+  </body>
+</html>
