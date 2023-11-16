@@ -12,10 +12,6 @@ import Seed from "./seed.js";
 import State from "./state.js";
 import * as Wallet from "./wallet/index.js";
 
-const minidenticon = async (str) => {
-  const module = await import("minidenticons");
-  return module.minidenticon(str);
-};
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -450,7 +446,7 @@ const init = (config) => {
   // alias to vivi.railway.internal
   // Create an auth token for some amount of time
   app.post("/auth", cors(), async (req, res) => {
-    console.log("AUTH ATTEMPTED FROM", req.headers.origin, { host });
+    console.log("AUTH ATTEMPTED FROM", req.headers.origin, { host: req.body.host });
     const pw = req.body.password;
     try {
       let s = await seed.get(pw);
@@ -564,6 +560,12 @@ const init = (config) => {
       return;
     }
 
+    // workaround to import not working in esm
+    const minidenticon = async (str) => {
+      const module = await import("minidenticons");
+      return module.minidenticon(str);
+    };     
+
     res.set("Content-Type", "image/svg+xml");
     res.set("Cache-Control", "max-age=31536000");
 
@@ -572,11 +574,10 @@ const init = (config) => {
       let k = await K.findOrCreate({
         host: "localhost",
       });
-
-      res.send(minidenticon(k.pub));
+      res.send(await minidenticon(k.pub));
     } else {
       // default icon
-      res.send(minidenticon("Anon"));
+      res.send(await minidenticon("Anon"));
     }
   });
 
