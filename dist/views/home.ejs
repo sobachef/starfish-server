@@ -1,10 +1,95 @@
 <html>
   <head>
-    <script src="/cdn.tailwindcss.com_3.3.3.js"></script>
+    <link
+      href="/daisy.4.4.2.full.min.css"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <script src="/htmx.min.js"></script>
+    <script src="/remove-me.js"></script>
+
+    <script src="/tailwind_3.3.5.js"></script>
+
     <script src="/moment.min.js"></script>
     <link rel="stylesheet" href="/style.css" />
-    <link href="/swal.css" rel="stylesheet" />
+    <!-- <link href="/swal.css" rel="stylesheet" /> -->
+    <link
+      rel="stylesheet"
+      href="/swal.css"
+    />
     <script src="/swal.min.js"></script>
+
+    <script>
+      htmx.on("htmx:afterRequest", function (evt) {
+        // console.log("The element that dispatched the request: ", evt.detail.elt);
+        // console.log("The XMLHttpRequest: ", evt.detail.xhr);
+        // console.log("The target of the request: ", evt.detail.target);
+        // console.log("The configuration of the AJAX request: ", evt.detail.requestConfig);
+        // console.log("The event that triggered the request: ", evt.detail.requestConfig.triggeringEvent);
+        // console.log("True if the response has a 20x status code or is marked detail.isError = false in the htmx:beforeSwap event, else false: ", evt.detail.successful);
+        // console.log("true if the response does not have a 20x status code or is marked detail.isError = true in the htmx:beforeSwap event, else false: ", evt.detail.failed);
+
+        if (
+          evt.detail.target.id === "save-profile-status" &&
+          !evt.detail.failed
+        ) {
+          document.getElementById("editProfileModal").close();
+        }
+      });
+
+      htmx.defineExtension("filter-response", {
+        onEvent: function (name, evt) {
+          // console.log("Fired event: " + name, evt);
+        },
+        handleSwap: function (swapStyle, target, fragment, settleInfo) {
+          console.log("Swapping: " + swapStyle, target, fragment, settleInfo);
+          return false;
+        },
+        transformResponse: function (text, xhr, request) {
+          // get the hx-filter attribute from the request element
+          const filter = request.getAttribute("hx-filter");
+
+          console.log("Transforming response: ", text, filter, request);
+          if (filter) {
+            // check if the filter contains a space
+            if (filter.indexOf(":") > -1 && filter.indexOf("?") > -1) {
+              // if it does, split it into an array at the punctuation
+              const filters = filter.split(/[:?]/);
+
+              // and return the value of the property named by the first item in the array
+              const parsed = JSON.parse(text);
+              const filterValue = parsed[filters[0].trim()];
+              console.log({
+                filters,
+                filterValue,
+                parsed,
+                filters0: filters[0],
+              });
+              return filterValue === "true" || filterValue === true
+                ? filters[1]
+                : filters[2];
+            } else {
+              throw new Error(
+                "Invalid filter. If more than a single key name is provided expecxting a turnary statement. ex: 'valid ? success : error'"
+              );
+              return;
+            }
+
+            // simple filter, parse the response as JSON
+            try {
+              const json = JSON.parse(text);
+            } catch (e) {
+              throw new Error("Invalid JSON response");
+              return;
+            }
+            // and return the value of the property named by the hx-filter attribute
+            return json[filter];
+          }
+          return text;
+        },
+      });
+    </script>
+
     <script>
       const swal = Swal.mixin({
         buttonsStyling: false,
@@ -13,12 +98,15 @@
       const modal = async () => {
         debugger;
         let { value: formValues } = await Swal.fire({
-          title: "Create a wallet",
-          html: "<div>Enter a password to encrypt your wallet.</div><br><input type='password' placeholder='select password' id='password' class='mb-2'><br><input type='password' placeholder='confirm password' id='confirm'><br>or <a id='import'>import seed</a>",
+          title: "Create a profile",
+          html: "<div>Enter a password to encrypt your data, and some basic profile info.</div><br><input type='text' placeholder='display name ex: Satoshi Nakamoto' id='displayName' class='mb-2'><br><input type='text' placeholder='set an avatar url' id='avatar' class='mb-2'><br><input type='text' placeholder='your@paymailaddress.com' id='paymail' class='mb-2'><br><input type='password' placeholder='choose a password' id='password' class='mb-2'><input type='password' placeholder='confirm password' id='confirm'><br>or <a id='import'>import seed</a>",
           preConfirm: () => {
             return [
               document.querySelector("#password").value,
               document.querySelector("#confirm").value,
+              document.querySelector("#displayName").value,
+              document.querySelector("#paymail").value,
+              document.querySelector("#avatar").value,
             ];
           },
           focusConfirm: true,
@@ -30,6 +118,7 @@
           },
         });
         if (formValues && formValues[0] === formValues[1]) {
+          debugger;
           fetch("/register", {
             method: "post",
             headers: {
@@ -37,6 +126,9 @@
             },
             body: JSON.stringify({
               password: formValues[0],
+              displayName: formValues[2],
+              paymail: formValues[3],
+              avatar: formValues[4],
             }),
           })
             .then((res) => {
@@ -103,13 +195,22 @@
       const exportKey = async () => {
         let { value: formValues } = await swal.fire({
           title: "Export Wallet Seed",
-          html: "<div>Please enter the decryption password.</div><br><input type='password' placeholder='select password' id='password'>",
+          html: "<div class='text-secondary'>Please enter the decryption password.</div><br><input class='input w-full max-w-xs' type='password' placeholder='enter your password' id='password'>",
           preConfirm: () => {
             return [document.querySelector("#password").value];
           },
-          focusConfirm: true,
+          focusConfirm: false,
           didOpen: () => {
-            document.querySelector("#password").focus();
+            const passwordInput = document.querySelector("#password");
+            passwordInput.focus();
+
+            // Add an event listener for the Enter key
+            passwordInput.addEventListener("keydown", (e) => {
+              if (e.key === "Enter") {
+                // Trigger the confirm button click
+                Swal.clickConfirm();
+              }
+            });
           },
         });
         if (formValues && formValues[0]) {
@@ -130,13 +231,38 @@
                 alert("Invalid password");
                 exportKey();
               } else {
-                if (data.seed) {
+                if (data.mnemonic) {
                   Swal.fire({
-                    title: "Seed Hex",
-                    html:
-                      "<textarea style='height: 200px;'>" +
-                      data.seed +
-                      "</textarea>",
+                    title: "Seed Phrase",
+                    html: `<pre class='text-sm mb-2 text-left p-2'>
+The derivation path follows the
+BIP44 standard with a twist:
+
+- A new account is created per web host
+- It uses a new branch of "2" instead of (0 or 1)
+
+So no overlap with existing BIP44 wallets but the
+wallet scheme can seamlessly integrate with them.
+</pre>
+                      <textarea class='textarea textarea-bordered text-lg font-mono w-full'>${data.mnemonic}</textarea>`,
+                    confirmButtonText: "Copy",
+                    didOpen: () => {
+                      document
+                        .querySelector(".swal2-confirm")
+                        .addEventListener("click", (e) => {
+                          navigator.clipboard.writeText(data.mnemonic);
+                          swal.fire({
+                            title: "Copied!",
+                            text: "Seed phrase copied to clipboard",
+                            icon: "success",
+                            timer: 3000,
+                            timerProgressBar: true,
+                            toast: true,
+                            position: "top-end",
+                            showConfirmButton: false,
+                          });
+                        });
+                    },
                   });
                 }
               }
@@ -156,6 +282,7 @@
         document.querySelector("#export").addEventListener("click", (e) => {
           exportKey();
         });
+
         document.querySelector("#logout").addEventListener("click", (e) => {
           fetch("/logout", {
             method: "post",
@@ -183,11 +310,65 @@
         <h1 class="text-lg">TokenPass</h1>
 
         <div class="flexible"></div>
-        <div class="menu-item" id="export">export</div>
-        <div class="menu-item" id="logout">logout</div>
+        <div
+          class="menu-item btn mr-2"
+          id="edit-profile"
+          onclick="editProfileModal.showModal()"
+        >
+          edit profile
+        </div>
+
+        <div class="menu-item btn mr-2" id="export">export</div>
+        <div class="menu-item btn" id="logout">logout</div>
       </div>
-      <div class="text-left"><h2 class="text-xs">Wallet Connected</h2></div>
+      <div class="text-left">
+        <h2 class="text-secondary text-xs font-mono tracking-wide">
+          Wallet Connected
+        </h2>
+      </div>
     </nav>
+
+    <!-- Open the modal using ID.showModal() method -->
+    <dialog id="editProfileModal" class="modal">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg">Edit Global Profile</h3>
+        <p class="py-4">This is you public profile.</p>
+        <form>
+          <% if (locals.states) { %> <% states.forEach((state) => { %> <% if
+          (state["host"] === 'global') { %> <% for (let stateKey in state) { %>
+          <% if (stateKey !== 'host' && stateKey !== '_id') { %>
+          <div class="form-control">
+            <label class="label" for="profile-<%= stateKey %>">
+              <%= stateKey %>
+            </label>
+            <input class="input input-bordered" type="text" <% if (stateKey ===
+            'bapID') { %> disabled <% } %> name="<%= stateKey %>" value="<%=
+            state[stateKey] %>" />
+          </div>
+          <br />
+          <% } %> <% } %> <% } %> <% }) %> <% } %>
+
+          <div id="save-profile-status" hx-ext="remove-me" class="flex mb-2">
+            <div>&nbsp;</div>
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-primary bg-primary text-primary-content"
+            hx-post="/profile"
+            hx-target="#save-profile-status"
+            hx-ext="filter-response"
+            hx-filter="success ? <div remove-me='3s'>success</div> : error"
+            hx-swap="afterbegin transition:true"
+          >
+            Save
+          </button>
+        </form>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
 
     <div class="container mx-auto">
       <% if (locals.keys) { %> <% locals.keys.forEach((key) => { %>
@@ -216,7 +397,7 @@
               <% if((stateKey === 'accessToken')) { %>
               <strong><%= stateKey %>:</strong> <%= state[stateKey] %>
               <div class="text-gray-800 text-xs">
-                expires in 
+                expires in
                 <span class="expireTime" data-time="<%= state['expireTime'] %>">
                   <%= state['expireTime'] %>
                 </span>

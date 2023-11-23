@@ -1,6 +1,7 @@
 <html>
   <head>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="/daisy.4.4.2.full.min.css" rel="stylesheet" type="text/css" />
+    <script src="/tailwind_3.3.5.js"></script>
     <link rel="stylesheet" href="/style.css" />
     <link href="/swal.css" rel="stylesheet" />
     <script src="/swal.min.js"></script>
@@ -8,13 +9,22 @@
       const modal = async () => {
         let { value: formValues } = await Swal.fire({
           title: "Login",
-          html: "<input type='password' placeholder='enter password' id='password'>",
+          html: "<input class='input input-bordered' type='password' placeholder='enter password' id='password'>",
           preConfirm: () => {
             return [document.querySelector("#password").value];
           },
-          focusConfirm: true,
+          focusConfirm: false,
           didOpen: () => {
-            document.querySelector("#password").focus();
+            const passwordInput = document.querySelector("#password");
+            passwordInput.focus();
+
+            // Add an event listener for the Enter key
+            passwordInput.addEventListener("keydown", (e) => {
+              if (e.key === "Enter") {
+                // Trigger the confirm button click
+                Swal.clickConfirm();
+              }
+            });
           },
         });
         if (formValues && formValues[0]) {

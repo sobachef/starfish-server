@@ -56,7 +56,7 @@ class Seed {
   }
   create(password) {
     return new Promise((resolve, reject) => {
-      let s = this.wallet.seed();
+      let s = this.wallet.seed(undefined, password);
       this.db.insert(
         {
           hex: encrypt(s.hex, password),

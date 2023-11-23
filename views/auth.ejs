@@ -1,6 +1,7 @@
 <html>
   <head>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="/daisy.4.4.2.full.min.css" rel="stylesheet" type="text/css" />
+    <script src="/tailwind_3.3.5.js"></script>
     <link rel="stylesheet" href="/style.css" />
     <link href="/swal.css" rel="stylesheet" />
     <script src="/swal.min.js"></script>
@@ -35,19 +36,19 @@
         </ul>
       </div>
       <div class="p-2">
-        <label for='once'>Ask Every Time
+        <label class='timeframe' for='once'>Ask Every Time
           <input type='radio' name='expire' id='once'>
         </label>
-        <label for='1h'>Allow for 1 Hour
+        <label class='timeframe' for='1h'>Allow for 1 Hour
           <input type='radio' name='expire' id='1h'>
         </label>
-        <label for='1d'>Allow for 1 Day
+        <label class='timeframe' for='1d'>Allow for 1 Day
           <input type='radio' name='expire' id='1d'>
         </label>
-        <label for='1m'>Allow for 1 Month
+        <label class='timeframe' for='1m'>Allow for 1 Month
           <input type='radio' name='expire' id='1m'>
         </label>
-        <label for='forever'>Allow Forever
+        <label class='timeframe' for='forever'>Allow Forever
           <input type='radio' name='expire' id='forever'>
         </label>
       </div>`,

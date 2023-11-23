@@ -1,8 +1,9 @@
 import bitcore from "bitcore-lib";
 import { encrypt as enc } from "../crypt.js";
+import { generateMnemonic } from "../utils/mnemonic.js";
 import Message from "./bitcore-message.js";
+
 delete global._bitcore;
-// console.log(identity.toJSON());
 
 export const sign = (message, key, encoding) => {
   const privateKey = bitcore.PrivateKey.fromWIF(key.priv);
@@ -33,7 +34,7 @@ export const create = async (seed, account, o) => {
    * - A new account is created per web host
    * - It uses a new branch of "2" instead of (0 or 1)
    *
-   * This way there is no overlap with existing BIP44 walletse but
+   * This way there is no overlap with existing BIP44 wallets but
    * the wallet scheme can seamlessly integrate with them.
    *
    ********************************************************************/
@@ -51,10 +52,20 @@ export const create = async (seed, account, o) => {
   return keys;
 };
 
-export const seed = (hex) => {
-  let buf = hex
-    ? Buffer.from(hex, "hex")
-    : bitcore.crypto.Random.getRandomBuffer(64);
+export const seed = (hex, passphrase) => {
+  let buf;
+  if (!hex) {
+    if (!passphrase) {
+      throw new Error("passphrase required creting initial seed");
+    }
+    // if no providing a hex, derive a seed from passphrase
+    let mnem = generateMnemonic(128)
+    mnem.setPassphrase(passphrase)
+    buf = Buffer.from(mnem.toBytes())
+  } else {
+    buf = Buffer.from(hex, "hex");
+  }
+
   try {
     let key = bitcore.HDPrivateKey.fromSeed(buf);
     return {
@@ -62,7 +73,6 @@ export const seed = (hex) => {
       key: key,
     };
   } catch (e) {
-    console.log("error", e);
     throw e;
   }
 };

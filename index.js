@@ -1,4 +1,7 @@
+import { BAP } from "bitcoin-bap";
+import Mnemonic from "bitcore-mnemonic";
 import bodyParser from "body-parser";
+import { ExtendedPrivateKey } from "bsv-wasm";
 import timeout from "connect-timeout";
 import cors from "cors";
 import { randomUUID } from "crypto";
@@ -11,7 +14,6 @@ import Key from "./key.js";
 import Seed from "./seed.js";
 import State from "./state.js";
 import * as Wallet from "./wallet/index.js";
-
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -232,22 +234,61 @@ const init = (config) => {
   // First time seed creation
   app.post("/register", async (req, res) => {
     let s = await seed.create(req.body.password);
+
+    // create a BAP ID from this seed
+    // code.toString(); // words...
+    // var xpriv = code.toHDPrivateKey(passphrase);
+    //    const pk = ExtendedPrivateKey.from_seed(Buffer.from(s.hex, "hex"));
+
+    // console.log({ xpriv: xpriv.xprivkey });
+    // // get cooresponding extended private key
+    // const hdPrivateKey = ExtendedPrivateKey.from_string(xpriv.xprivkey);
+
+    const pk = ExtendedPrivateKey.from_seed(Buffer.from(s.hex, "hex"));
+    const bap = new BAP(pk.to_string());
+    const newId = bap.newId();
+
     K.setSeed(s);
 
     // create first state for localhost with an icon
     const state = await S.findOrCreate({
       host: process.env.TOKENPASS_HOST || "localhost",
     });
+
     if (!state.icon) {
       state.icon = "/auth/icon";
-      await S.update(state);
     }
+    await S.update(state);
+
+    const globalState = await S.findOrCreate({
+      host: "global",
+    });
+    // console.log({ newId });
+
+    newId.setAttribute("displayName", req.body.displayName);
+    newId.setAttribute("paymail", req.body.paymail);
+    newId.setAttribute("logo", req.body.logo); // TODO: bap calls it logo, tokenpass calls it icon
+
+    // TODO: Create on-chain record for this identity
+
+    globalState = {
+      ...globalState,
+      //...newId.identityAttributes, // these are {value: "" , none: 123} but i only want the value
+      // ...newId.identityAttributes,// this is an object, I want to spread it
+      ...Object.keys(newId.identityAttributes).reduce((acc, key) => {
+        acc[key] = newId.identityAttributes[key].value;
+        return acc;
+      }, {}),
+      bapID: newId.identityKey,
+    };
+    await S.update(globalState);
 
     res.json({});
   });
 
   // Import seed
-  app.post("/import", async (req, res) => {
+  // TODO: Remove cors here
+  app.post("/import", cors(), async (req, res) => {
     try {
       let s = await seed.importKey(req.body.hex, req.body.password);
       K.setSeed(s);
@@ -259,10 +300,20 @@ const init = (config) => {
 
   // Export seed
   app.post("/export", async (req, res) => {
+    // return the mnemonic
     try {
       let hex = await seed.exportKey(req.body.password);
-      if (hex) {
-        res.json({ seed: hex });
+
+      const pk = ExtendedPrivateKey.from_seed(Buffer.from(hex, "hex"));
+      const bap = new BAP(pk.to_string());
+      // const bapId = bap.getId();
+      // console.log({ bapId });
+      const mnemonic = Mnemonic.fromSeed(
+        Buffer.from(hex, "hex"),
+        Mnemonic.Words.ENGLISH
+      );
+      if (mnemonic) {
+        res.json({ seed: hex, mnemonic: mnemonic.phrase });
       } else {
         res.status(401).json({
           error: "invalid",
@@ -272,7 +323,13 @@ const init = (config) => {
           }/auth`,
         });
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({
+        error: "unknown error",
+        success: false,
+      });
+    }
   });
 
   // Update state object
@@ -430,23 +487,12 @@ const init = (config) => {
     }
   });
 
-  // Decrypt wallet with password at startup
-  app.post("/login", async (req, res) => {
-    try {
-      let s = await seed.get(req.body.password);
-      if (s) {
-        K.setSeed(s);
-        res.json({ success: true });
-      } else {
-        res.json({ error: "invalid", success: false });
-      }
-    } catch (e) {}
-  });
-
   // alias to vivi.railway.internal
   // Create an auth token for some amount of time
   app.post("/auth", cors(), async (req, res) => {
-    console.log("AUTH ATTEMPTED FROM", req.headers.origin, { host: req.body.host });
+    console.log("AUTH ATTEMPTED FROM", req.headers.origin, {
+      host: req.body.host,
+    });
     const pw = req.body.password;
     try {
       let s = await seed.get(pw);
@@ -546,25 +592,35 @@ const init = (config) => {
 
   // Icon intended to be rendered in the auth page only
   app.get("/auth/icon", cors(), async (req, res) => {
-    // ! Forbid auth from any outside host
-    if (
-      req.headers.host !==
-      `${process.env.TOKENPASS_HOST || "localhost"}:${
-        process.env.TOKENPASS_PORT || "21000"
-      }`
-    ) {
+    // ! Forbid auth from any not allowed origin
+    // undefined is same network
+    if (req.headers.origin && !allowedOrigins.includes(req.headers.origin)) {
       res.status(403).json({
-        error: "The origin is not authorized" + req.headers.origin,
+        error: "The origin is not authorized",
         code: 6,
       });
       return;
     }
 
+    // ! Forbid auth from any outside host
+    // if (
+    //   req.headers.host !==
+    //   `${process.env.TOKENPASS_HOST || "localhost"}:${
+    //     process.env.TOKENPASS_PORT || "21000"
+    //   }`
+    // ) {
+    //   res.status(403).json({
+    //     error: "The origin is not authorized" + req.headers.origin,
+    //     code: 6,
+    //   });
+    //   return;
+    // }
+
     // workaround to import not working in esm
     const minidenticon = async (str) => {
       const module = await import("minidenticons");
       return module.minidenticon(str);
-    };     
+    };
 
     res.set("Content-Type", "image/svg+xml");
     res.set("Cache-Control", "max-age=31536000");
@@ -587,6 +643,7 @@ const init = (config) => {
       // if host is specified
       let keys = (await K.all()) || [];
       let states = (await S.all()) || [];
+      console.log(states);
       res.render("home", { keys, states, seed: true });
     } else {
       let seedCount = await seed.count();

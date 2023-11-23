@@ -90,7 +90,7 @@ nav h1 {
   cursor: pointer;
 }
 
-label {
+.timeframe {
   width: 100%;
   padding: 0.25rem 0;
   cursor: pointer;
@@ -104,6 +104,6 @@ label {
   font-size: large;
 }
 
-label:hover {
+.timeframe:hover {
   background: #f2f2f2;
 }
