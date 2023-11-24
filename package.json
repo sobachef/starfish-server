@@ -2,7 +2,7 @@
   "name": "tokenpass-server",
   "version": "0.1.5",
   "description": "TokenPass Server",
-  "source": "index.js",
+  "source": "src/index.js",
   "main": "dist/index.cjs",
   "module": "dist/index.esm.js",
   "homepage": "https://tokenpass.app",
@@ -15,7 +15,7 @@
     "tokenpass": "./bin/tokenpass.js"
   },
   "scripts": {
-    "buildd": "rimraf -rf dist && microbundle && cpy views/**/* dist/views --parents && cpy public/**/* dist/public --parents",
+    "buildd": "rimraf -rf dist && microbundle && cpy src/views/**/* dist/views --parents && cpy public/**/* dist/public --parents",
     "dev": "bun buildd && bun start",
     "start": "bun bin/tokenpass.js",
     "test": "jest"
