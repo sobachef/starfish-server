@@ -20,13 +20,7 @@ body {
   padding: 10px;
   cursor: pointer;
 }
-a#import {
-  color: rgba(0, 0, 0, 0.6);
-  text-decoration: underline;
-  cursor: pointer;
-  padding: 10px 0 0;
-  display: inline-block;
-}
+
 nav {
   padding: 30px 10px;
   display: flex;

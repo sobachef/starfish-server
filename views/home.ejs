@@ -99,26 +99,45 @@
         debugger;
         let { value: formValues } = await Swal.fire({
           title: "Create a profile",
-          html: "<div>Enter a password to encrypt your data, and some basic profile info.</div><br><input type='text' placeholder='display name ex: Satoshi Nakamoto' id='displayName' class='mb-2'><br><input type='text' placeholder='set an avatar url' id='avatar' class='mb-2'><br><input type='text' placeholder='your@paymailaddress.com' id='paymail' class='mb-2'><br><input type='password' placeholder='choose a password' id='password' class='mb-2'><input type='password' placeholder='confirm password' id='confirm'><br>or <a id='import'>import seed</a>",
+          html: `<div>Enter a password to encrypt your data, and some basic profile info.</div><br>
+          <label class="label" for="displayName">Display Name</label>
+          <input name="displayName" type='text' placeholder='Satoshi Nakamoto' id='profile-displayName' class='input input-bordered w-full mb-2' /><br>
+          <label class="label" for="avatar">Avatar</label>
+          <input name="avatar" type='file' id='profile-avatar' class='file file-bordered w-full mb-2' /><br>
+          <label class="label" for="paymail">Paymail</label>
+          <input name="paymail" type='text' placeholder='your@paymailaddress.com' id='profile-paymail' class='input input-bordered w-full mb-2' /><br>
+          <div class="divider"></div>
+          <label class="label" for="password"> Choose a password</label>
+          <input name="password" type='password' placeholder='enter a password' id='profile-password' class='input input-bordered w-full mb-2' />
+          <input name="confirm" type='password' placeholder='confirm password' id='profile-confirm' class='input input-bordered w-full' /><br>
+
+          <div class="divider">OR</div>
+          <button class="btn" onclick="importSeedModal.showModal()">import seed</button>
+
+          `,
+          allowOutsideClick: false,
           preConfirm: () => {
             return [
-              document.querySelector("#password").value,
-              document.querySelector("#confirm").value,
-              document.querySelector("#displayName").value,
-              document.querySelector("#paymail").value,
-              document.querySelector("#avatar").value,
+              document.querySelector("#profile-password").value,
+              document.querySelector("#profile-confirm").value,
+              document.querySelector("#profile-displayName").value,
+              document.querySelector("#profile-paymail").value,
+              document.querySelector("#profile-avatar").value,
             ];
           },
           focusConfirm: true,
           didOpen: () => {
-            document.querySelector("#password").focus();
-            document.querySelector("#import").addEventListener("click", (e) => {
-              importKey();
-            });
+            // document.querySelector("#password").focus();
+//             document.querySelector("#import").addEventListener("click", async (e) => {
+//               // close the open model first
+//               Swal.close()
+// debugger;
+//               await importKey();
+//             });
           },
         });
+        debugger
         if (formValues && formValues[0] === formValues[1]) {
-          debugger;
           fetch("/register", {
             method: "post",
             headers: {
@@ -156,6 +175,7 @@
           },
           focusConfirm: true,
           didOpen: () => {
+            console.log("import opened")
             document.querySelector("#seed").focus();
           },
         });
@@ -421,5 +441,18 @@ wallet scheme can seamlessly integrate with them.
       </div>
       <% } %>
     </div>
+    <dialog id="importSeedModal" class="modal">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg mb-2">Import Seed</h3>
+        <form>
+          <textarea id="import-mnemonic" class="textarea textarea-bordered py-4 w-full mb-2 font-mono">Enter your seed phrase</textarea>
+          <label class="label" for="password">Choose a password to encrypt your data</label>
+          <input type='password' placeholder='select password' id='import-password' class="input input-bordered w-full">
+          <div class="modal-action">
+            <button class="btn" hx-post="/import">Import</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
   </body>
 </html>

@@ -1,3 +1,4 @@
+import { MnemonicEN } from "@bsvwasm/mnemonic";
 import { BAP } from "bitcoin-bap";
 import Mnemonic from "bitcore-mnemonic";
 import bodyParser from "body-parser";
@@ -290,7 +291,8 @@ const init = (config) => {
   // TODO: Remove cors here
   app.post("/import", cors(), async (req, res) => {
     try {
-      let s = await seed.importKey(req.body.hex, req.body.password);
+      const mnemonic = new MnemonicEN(req.body.mnemonic);
+      let s = await seed.importKey(mnemonic.toHex(), req.body.password);
       K.setSeed(s);
       res.json({});
     } catch (e) {
